@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import Tabs from "@/components/Tabs";
 import { generateWhatsAppText } from "@/lib/share";
 import Button from "@/components/ui/Button";
+const { useEffect: reactUseEffect } =
+  require("react") as typeof import("react");
 
 const EditableItems = dynamic(() => import("@/components/EditableItems"));
 const SplitEqual = dynamic(() => import("@/components/SplitEqual"));
@@ -65,7 +67,7 @@ export default function UploadBox() {
       } else {
         const cleanText = text.replace(/\./g, "");
         const matches = cleanText.matchAll(
-          /([A-Za-z\s]+?)\s*x?\s*(\d+)?\s+(\d{3,6})/g
+          /([A-Za-z\s]+?)\s*x?\s*(\d+)?\s+(\d{3,6})/g,
         );
 
         items = Array.from(matches).map((m) => ({
@@ -75,10 +77,7 @@ export default function UploadBox() {
         }));
       }
 
-      const total = items.reduce(
-        (sum, item) => sum + item.price * item.qty,
-        0
-      );
+      const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
       setFinalData({ items, total });
     } catch {
@@ -88,13 +87,19 @@ export default function UploadBox() {
     }
   };
 
+  useEffect(() => {
+    setSplitResult([]);
+  }, [splitType]);
+
   return (
-    <motion.div className="
+    <motion.div
+      className="
   bg-white text-black 
   dark:bg-[#0f172a] dark:text-white
   border border-gray-300 dark:border-gray-800 
   rounded-xl p-4 space-y-4 transition-colors
-">
+"
+    >
       <h2 className="text-xl font-bold text-center">Split Bill AI</h2>
 
       <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center">
@@ -150,7 +155,11 @@ export default function UploadBox() {
                   total={finalData.total}
                   peopleNames={peopleNames}
                   setPeopleNames={setPeopleNames}
-                  onResult={(res) => setSplitResult(res)}
+                  onResult={(res) => {
+                    if (splitType === "equal") {
+                      setSplitResult(res);
+                    }
+                  }}
                 />
               ),
             },
@@ -161,7 +170,11 @@ export default function UploadBox() {
                 <SplitPercentage
                   total={finalData.total}
                   peopleNames={peopleNames}
-                  onResult={(res) => setSplitResult(res)}
+                  onResult={(res) => {
+                    if (splitType === "percentage") {
+                      setSplitResult(res);
+                    }
+                  }}
                 />
               ),
             },
@@ -173,7 +186,11 @@ export default function UploadBox() {
                   items={finalData.items}
                   total={finalData.total}
                   peopleNames={peopleNames}
-                  onResult={(res) => setSplitResult(res)}
+                  onResult={(res) => {
+                    if (splitType === "item") {
+                      setSplitResult(res);
+                    }
+                  }}
                 />
               ),
             },
@@ -188,7 +205,7 @@ export default function UploadBox() {
               type: splitType,
               people: splitResult,
               total: finalData.total,
-            })
+            }),
           )}`}
           target="_blank"
           className="block w-full text-center bg-green-600 py-3 rounded-xl font-semibold"
@@ -198,4 +215,7 @@ export default function UploadBox() {
       )}
     </motion.div>
   );
+}
+function useEffect(effect: () => void, deps: SplitType[]) {
+  return reactUseEffect(effect, deps);
 }

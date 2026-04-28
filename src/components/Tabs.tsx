@@ -17,8 +17,8 @@ export default function Tabs({ tabs, onChange }: Props) {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    onChange?.(tabs[active].value);
-  }, [active]);
+  onChange?.(tabs[active].value);
+}, [active, tabs, onChange]);
 
   return (
     <div>
